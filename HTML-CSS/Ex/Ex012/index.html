@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagens Dinamicas</title>
+</head>
+<body>
+    <h1>Imagens Dinamicas</h1>
+    <p>abra essas imagens em outros dispositivos </p>
+    <picture>
+        <source media="(max-width:750px)" srcset="IMG/img-pequena.png" type="image/png">
+        <source media="(max-width:1050px )" srcset="IMG/img-media.png" type="image/png">
+        <img src="IMG/img-grande.png" alt="imagen flexivel">
+    </picture>
+    <h1> Reproduzindo audios </h1>
+    <p>Vamos prender a reproduzir audios em html5</p>
+    <p>forma mais simples</p>
+    <audio src="midia/Undertale OST： 024 - Bonetrousle.mp3"controls autoplay></audio>
+    <p> outra forma</p>
+ <audio preload="metadata" autoplay controls loop>
+<source src="midia/Silent Night - The Soundlings.mp3" type="audio/mp3"> 
+<source src="midia/Silent Night - The Soundlings.ogg" type="audio/ogg">
+<source src="midia/Silent Night - The Soundlings.wav" type="audio/wav">
+<p>infelismente o seu navegador nâo consegue reproduzir audio <a href="midia/Silent Night - The Soundlings.mp3">Clique aqui para baixar o aquivo em mp3</a></p>
+</audio>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Detram </title>
+</head>
+<body>
+    <h1>sistemas de multa</h1>
+   velocidade do carro: <input type="number" name="txtvel" id="txtvel"> km/h
+   <input type="button" value="verificar" onclick="calcular()">
+   <div id="res">
+
+   </div>
+   <script>
+   function calcular() {
+    let  txtv = window.document.querySelector('input#txtvel')
+    let res = window.document.querySelector('div#res')
+    let vel =  Number(txtv.value)
+        res.innerHTML = `<p>sua velocidade atual e de ${vel} </p>`
+    if (vel>65) {
+        res.innerHTML += `<p>Voce esta <strong>Multado</strong> por excesso de velocidade</p>`
+    }
+    res.innerHTML += `<p>Dirija sempre com cinto de seguraca</p>`
+}
+</script>
+
+</body>
+</html>
