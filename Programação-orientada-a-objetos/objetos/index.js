@@ -5,8 +5,14 @@
     modelo:"Ka",
     ano:"2015" ,
      placa:"72H7P8",
+
     buzina: function(){
-      console.log("Biiiiiiiiii")  
-    }
-    };
+      console.log("Biiiiiiiiii")},
+    
+    completo:function(){
+        return`A marca é ${this.marca}, o modelo é ${this.modelo}`
+    }};
+    console.log(carro.completo())
+    
+   console.log(carro.buzina());
 // Objetos também podem ter metodos, Um método e uma função colocada dentro de uma propriedade.
