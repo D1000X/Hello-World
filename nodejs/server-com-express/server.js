@@ -3,7 +3,7 @@ const express = require("express");
 const server = express();
 //constante que vai receber o express
 
-// ROTA PRINCIPAL - Rota padrão do site (http://localhost:8081/)
+// ROTA PRINCIPAL - Rota padrão do site (http://localhost:8081/)aaaaa
 server.get("/",function(req,res){
      // Envia uma mensagem de boas-vindas ao acessar a rota principal
     res.send("Seja Bem-vindo ao nosso site");
