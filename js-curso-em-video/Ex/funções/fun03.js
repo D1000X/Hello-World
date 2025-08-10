@@ -5,4 +5,4 @@ function fatori(n) {
     }
     return fat
 }
-console.log(fatori(5))
+console.log(fatori(5)) 
