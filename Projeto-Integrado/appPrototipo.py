@@ -1,5 +1,6 @@
 pacientes = []
 
+
 def cadastrar_paciente():
     nome = input("Nome do paciente: ")
     try:
@@ -12,14 +13,22 @@ def cadastrar_paciente():
     pacientes.append(paciente)
     print("Paciente cadastrado com sucesso!")
 
+
 def ver_estatisticas():
     if not pacientes:
         print("Nenhum paciente cadastrado.")
         return
     total = len(pacientes)
     media_idade = sum(p["idade"] for p in pacientes) / total
+    paciente_mais_velho = max(pacientes, key=lambda p: p["idade"])
+    paciente_mais_novo = min(pacientes, key=lambda p: p["idade"])
     print(f"Total de pacientes: {total}")
     print(f"Média de idade: {media_idade:.2f}")
+    print(
+        f"Paciente mais velho: {paciente_mais_velho['nome']} ({paciente_mais_velho['idade']} anos)")
+    print(
+        f"Paciente mais novo: {paciente_mais_novo['nome']} ({paciente_mais_novo['idade']} anos)")
+
 
 def buscar_paciente():
     nome = input("Digite o nome do paciente para buscar: ")
@@ -30,12 +39,14 @@ def buscar_paciente():
     else:
         print("Paciente não encontrado.")
 
+
 def listar_pacientes():
     if not pacientes:
         print("Nenhum paciente cadastrado.")
         return
     for p in pacientes:
         print(p)
+
 
 while True:
     print("\n=== Sistema Clinica Vida+ ===")
