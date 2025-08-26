@@ -1,0 +1,1 @@
+pyautogui.write("dg26276228@gamil.com")
