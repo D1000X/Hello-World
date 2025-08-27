@@ -1,0 +1,30 @@
+[
+    {
+        "nome": "Feijão",
+        "quantidade": 1,
+        "unidade": "klg",
+        "categoria": "Alimentos",
+        "limite_alerta": 1
+    },
+    {
+        "nome": "Açúcar",
+        "quantidade": 2,
+        "unidade": "klg",
+        "categoria": "Alimentos",
+        "limite_alerta": 1
+    },
+    {
+        "nome": "Café",
+        "quantidade": 2,
+        "unidade": "g",
+        "categoria": "Alimentos",
+        "limite_alerta": 1
+    },
+    {
+        "nome": "Arroz",
+        "quantidade": 17,
+        "unidade": "klg",
+        "categoria": "Alimentos",
+        "limite_alerta": 5
+    }
+]
