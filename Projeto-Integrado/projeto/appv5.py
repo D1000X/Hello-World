@@ -85,8 +85,7 @@ def validar_entrada(nome, quantidade_str, unidade, categoria, limite_str, preco_
             erros.append("Data de validade inválida (DD/MM/AAAA)")
     if not codigo_barras.strip():
         erros.append("Código de barras é obrigatório")
-    elif not validar_ean13(codigo_barras.strip()):
-        erros.append("Código EAN-13 inválido")
+    # Removido: validação EAN-13
     return erros
 
 def adicionar_item():
@@ -107,7 +106,7 @@ def adicionar_item():
         return
 
     for item in estoque:
-        if item["codigo_barras"] == codigo_barras:
+        if item.get("codigo_barras", "") == codigo_barras:
             messagebox.showerror("Erro", "Código de barras já cadastrado!")
             return
 

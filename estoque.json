@@ -1,20 +1,13 @@
 [
     {
-        "nome": "Feij\u00e3o",
-        "quantidade": 1,
-        "unidade": "klg",
-        "categoria": "Alimentos",
-        "limite_alerta": 1
-    },
-    {
-        "nome": "A\u00e7\u00facar",
+        "nome": "Açúcar",
         "quantidade": 2,
         "unidade": "klg",
         "categoria": "Alimentos",
         "limite_alerta": 1
     },
     {
-        "nome": "Caf\u00e9",
+        "nome": "Café",
         "quantidade": 2,
         "unidade": "g",
         "categoria": "Alimentos",
@@ -26,5 +19,20 @@
         "unidade": "klg",
         "categoria": "Alimentos",
         "limite_alerta": 5
+    },
+    {
+        "codigo_barras": "67234671246725",
+        "nome": "Feijão do João",
+        "quantidade": 15,
+        "unidade": "klg",
+        "categoria": "Alimentos",
+        "limite_alerta": 5,
+        "preco_custo": 4.2,
+        "preco_venda": 8.4,
+        "margem_lucro": 4.2,
+        "fornecedor": "João do Feijão oficial",
+        "data_validade": "11/08/2026",
+        "data_cadastro": "2025-08-30 13:14:25",
+        "movimentacoes": []
     }
 ]
