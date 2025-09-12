@@ -10,38 +10,6 @@ from datetime import datetime
 # ---------------------------
 ARQUIVO_ESTOQUE = "estoque.json"
 ARQUIVO_NOTAS = "notas.json"
-ARQUIVO_USUARIOS = "usuarios.json"
-
-# ---------------------------
-# Variáveis globais
-# ---------------------------
-usuario_logado = None
-estoque = []
-notas = []
-usuarios = []
-itens_nf_temporarios = []
-
-# ---------------------------
-# Usuários - Funções
-# ---------------------------
-def carregar_usuarios():
-    if not os.path.exists(ARQUIVO_USUARIOS):
-        # Cria admin padrão se não existir
-        usuarios_default = [{"usuario": "admin", "senha": "admin", "nivel": "admin"}]
-        salvar_usuarios(usuarios_default)
-        return usuarios_default
-    try:
-        with open(ARQUIVO_USUARIOS, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return [{"usuario": "admin", "senha": "admin", "nivel": "admin"}]
-
-def salvar_usuarios(usuarios_local):
-    try:
-        with open(ARQUIVO_USUARIOS, "w", encoding="utf-8") as f:
-            json.dump(usuarios_local, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        messagebox.showerror("Erro", f"Erro ao salvar usuários: {e}")
 
 # ---------------------------
 # Carregar dados
@@ -63,6 +31,16 @@ def carregar_notas():
         except Exception:
             return []
     return []
+
+estoque = carregar_estoque()
+notas = carregar_notas()
+
+# Corrigir itens antigos sem validade/movimentações
+for item in estoque:
+    if "data_validade" not in item:
+        item["data_validade"] = ""
+    if "movimentacoes" not in item:
+        item["movimentacoes"] = []
 
 # ---------------------------
 # Salvamento
@@ -147,139 +125,6 @@ def validar_entrada(nome, quantidade_str, unidade, categoria, limite_str, preco_
         if len(codigo_barras.strip()) == 13 and not validar_ean13(codigo_barras.strip()):
             erros.append("EAN-13 inválido")
     return erros
-
-# ---------------------------
-# Login - Funções
-# ---------------------------
-def verificar_login():
-    usuario = entry_usuario.get().strip()
-    senha = entry_senha.get().strip()
-    
-    if not usuario or not senha:
-        messagebox.showerror("Erro", "Digite usuário e senha")
-        return
-    
-    for u in usuarios:
-        if u["usuario"] == usuario and u["senha"] == senha:
-            global usuario_logado
-            usuario_logado = u
-            messagebox.showinfo("Login", f"Bem-vindo {usuario} ({u['nivel']})")
-            tela_login.destroy()
-            abrir_sistema()
-            return
-    
-    messagebox.showerror("Erro", "Usuário ou senha inválidos")
-
-def logout():
-    global usuario_logado
-    usuario_logado = None
-    root.destroy()
-    iniciar_login()
-
-# ---------------------------
-# Administração - Funções
-# ---------------------------
-def cadastrar_usuario():
-    def salvar_novo_usuario():
-        novo_usuario = entry_novo_usuario.get().strip()
-        nova_senha = entry_nova_senha.get().strip()
-        nivel = combo_nivel.get().strip()
-        
-        if not novo_usuario or not nova_senha or not nivel:
-            messagebox.showerror("Erro", "Preencha todos os campos")
-            return
-        
-        # Verifica se usuário já existe
-        for u in usuarios:
-            if u["usuario"] == novo_usuario:
-                messagebox.showerror("Erro", "Usuário já existe")
-                return
-        
-        usuarios.append({
-            "usuario": novo_usuario,
-            "senha": nova_senha,
-            "nivel": nivel
-        })
-        salvar_usuarios(usuarios)
-        atualizar_lista_usuarios()
-        messagebox.showinfo("Sucesso", f"Usuário '{novo_usuario}' cadastrado com sucesso!")
-        
-        # Limpar campos
-        entry_novo_usuario.delete(0, tk.END)
-        entry_nova_senha.delete(0, tk.END)
-        combo_nivel.set('')
-    
-    def remover_usuario():
-        selecao = tree_usuarios.selection()
-        if not selecao:
-            messagebox.showerror("Erro", "Selecione um usuário para remover")
-            return
-        
-        item_selecionado = selecao[0]
-        index_item = tree_usuarios.index(item_selecionado)
-        usuario_remover = usuarios[index_item]["usuario"]
-        
-        if usuario_remover == "admin":
-            messagebox.showerror("Erro", "Não é possível remover o usuário admin")
-            return
-        
-        resposta = messagebox.askyesno("Confirmação", f"Remover usuário '{usuario_remover}'?")
-        if resposta:
-            usuarios.pop(index_item)
-            salvar_usuarios(usuarios)
-            atualizar_lista_usuarios()
-            messagebox.showinfo("Sucesso", f"Usuário '{usuario_remover}' removido!")
-    
-    def atualizar_lista_usuarios():
-        for item in tree_usuarios.get_children():
-            tree_usuarios.delete(item)
-        
-        for usuario in usuarios:
-            tree_usuarios.insert("", tk.END, values=(
-                usuario["usuario"],
-                usuario["nivel"],
-                "*" * len(usuario["senha"])  # Ocultar senha
-            ))
-    
-    # Janela de cadastro
-    janela_usuarios = tk.Toplevel(root)
-    janela_usuarios.title("Gerenciar Usuários")
-    janela_usuarios.geometry("600x400")
-    
-    # Formulário
-    frame_form = tk.Frame(janela_usuarios)
-    frame_form.pack(fill="x", padx=10, pady=10)
-    
-    tk.Label(frame_form, text="Usuário:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-    entry_novo_usuario = tk.Entry(frame_form, width=20)
-    entry_novo_usuario.grid(row=0, column=1, padx=5, pady=5)
-    
-    tk.Label(frame_form, text="Senha:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-    entry_nova_senha = tk.Entry(frame_form, width=20, show="*")
-    entry_nova_senha.grid(row=1, column=1, padx=5, pady=5)
-    
-    tk.Label(frame_form, text="Nível:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-    combo_nivel = ttk.Combobox(frame_form, values=["admin", "comum"], width=17)
-    combo_nivel.grid(row=2, column=1, padx=5, pady=5)
-    
-    btn_salvar = tk.Button(frame_form, text="Cadastrar Usuário", command=salvar_novo_usuario, bg="#4caf50", fg="white")
-    btn_salvar.grid(row=3, column=0, columnspan=2, pady=10)
-    
-    # Lista de usuários
-    frame_lista = tk.Frame(janela_usuarios)
-    frame_lista.pack(fill="both", expand=True, padx=10, pady=10)
-    
-    cols_usuarios = ("Usuário", "Nível", "Senha")
-    tree_usuarios = ttk.Treeview(frame_lista, columns=cols_usuarios, show="headings", height=10)
-    for col in cols_usuarios:
-        tree_usuarios.heading(col, text=col)
-        tree_usuarios.column(col, width=150)
-    tree_usuarios.pack(fill="both", expand=True)
-    
-    btn_remover = tk.Button(frame_lista, text="Remover Usuário Selecionado", command=remover_usuario, bg="#f44336", fg="white")
-    btn_remover.pack(pady=5)
-    
-    atualizar_lista_usuarios()
 
 # ---------------------------
 # Interface - funções Estoque
@@ -660,6 +505,8 @@ def validar_item_nf():
             erros.append("Data de validade inválida (DD/MM/AAAA)")
     return erros
 
+itens_nf_temporarios = []
+
 def adicionar_item_nf():
     erros = validar_item_nf()
     if erros:
@@ -800,276 +647,155 @@ def salvar_nf():
     messagebox.showinfo("Sucesso", f"NF {numero} registrada! Itens atualizados: {atualizados}, novos: {novos}")
 
 # ---------------------------
-# Tela de Login
+# Interface Tkinter
 # ---------------------------
-def iniciar_login():
-    global tela_login, entry_usuario, entry_senha, usuarios
-    
-    # Carregar usuários
-    usuarios = carregar_usuarios()
-    
-    tela_login = tk.Tk()
-    tela_login.title("Login - Controle de Estoque v7")
-    tela_login.geometry("400x300")
-    tela_login.resizable(False, False)
-    
-    # Centralizar na tela
-    tela_login.eval('tk::PlaceWindow . center')
-    
-    # Frame principal
-    frame_main = tk.Frame(tela_login, padx=40, pady=40)
-    frame_main.pack(expand=True, fill="both")
-    
-    # Título
-    tk.Label(frame_main, text="SISTEMA DE ESTOQUE", font=("Arial", 16, "bold"), fg="#2c3e50").pack(pady=(0, 20))
-    
-    # Campos de login
-    tk.Label(frame_main, text="Usuário:", font=("Arial", 11)).pack(anchor="w")
-    entry_usuario = tk.Entry(frame_main, font=("Arial", 11), width=25)
-    entry_usuario.pack(pady=(5, 15), fill="x")
-    
-    tk.Label(frame_main, text="Senha:", font=("Arial", 11)).pack(anchor="w")
-    entry_senha = tk.Entry(frame_main, font=("Arial", 11), width=25, show="*")
-    entry_senha.pack(pady=(5, 20), fill="x")
-    
-    # Botão de login
-    btn_login = tk.Button(frame_main, text="ENTRAR", command=verificar_login, 
-                         bg="#3498db", fg="white", font=("Arial", 12, "bold"), 
-                         relief="flat", padx=20, pady=8)
-    btn_login.pack(pady=10, fill="x")
-    
-    # Bind Enter para login
-    entry_senha.bind('<Return>', lambda event: verificar_login())
-    entry_usuario.bind('<Return>', lambda event: entry_senha.focus())
-    
-    # Info do admin padrão
-    info_frame = tk.Frame(frame_main)
-    info_frame.pack(pady=(20, 0), fill="x")
-    
-    tk.Label(info_frame, text="Primeiro acesso:", font=("Arial", 9, "bold")).pack()
-    tk.Label(info_frame, text="Usuário: admin | Senha: admin", font=("Arial", 9), fg="#7f8c8d").pack()
-    
-    # Focar no campo usuário
-    entry_usuario.focus()
-    
-    tela_login.mainloop()
+root = tk.Tk()
+root.title("Controle de Estoque - v6")
+root.geometry("1200x700")
 
-# ---------------------------
-# Sistema Principal
-# ---------------------------
-def abrir_sistema():
-    global root, tree, entry_codigo_barras, entry_nome, entry_quantidade, entry_unidade
-    global combo_categoria, entry_limite, entry_preco_custo, entry_preco_venda
-    global entry_fornecedor, entry_data_validade, entry_busca, label_contador
-    global entry_numero_nf, entry_fornecedor_nf, entry_cnpj_nf, entry_data_emissao_nf
-    global entry_produto_nf, entry_quantidade_nf, entry_preco_nf, entry_validade_nf
-    global tree_itens_nf, label_total_nf, estoque, notas
-    
-    # Carregar dados
-    estoque = carregar_estoque()
-    notas = carregar_notas()
-    
-    # Corrigir itens antigos sem validade/movimentações
-    for item in estoque:
-        if "data_validade" not in item:
-            item["data_validade"] = ""
-        if "movimentacoes" not in item:
-            item["movimentacoes"] = []
-    
-    root = tk.Tk()
-    root.title(f"Controle de Estoque v7 - Logado: {usuario_logado['usuario']} ({usuario_logado['nivel']})")
-    root.geometry("1200x700")
-    
-    # Frames principais
-    frame_top = tk.Frame(root)
-    frame_top.pack(fill="x", padx=8, pady=6)
-    
-    frame_main = tk.Frame(root)
-    frame_main.pack(fill="both", expand=True, padx=8, pady=6)
-    
-    # ---------- CONTROLES SUPERIORES ----------
-    btn_backup = tk.Button(frame_top, text="Backup", command=fazer_backup)
-    btn_backup.pack(side="left", padx=4)
-    btn_export_csv = tk.Button(frame_top, text="Exportar CSV", command=exportar_csv)
-    btn_export_csv.pack(side="left", padx=4)
-    btn_relatorio = tk.Button(frame_top, text="Gerar Relatório", command=gerar_relatorio)
-    btn_relatorio.pack(side="left", padx=4)
-    
-    # Botão logout
-    btn_logout = tk.Button(frame_top, text="Logout", command=logout, bg="#e74c3c", fg="white")
-    btn_logout.pack(side="right", padx=4)
-    
-    label_contador = tk.Label(frame_top, text="")
-    label_contador.pack(side="right", padx=(0, 10))
-    
-    # ---------- TABS ----------
-    notebook = ttk.Notebook(frame_main)
-    notebook.pack(fill="both", expand=True)
-    
-    # --- Aba Estoque ---
-    aba_estoque = ttk.Frame(notebook)
-    notebook.add(aba_estoque, text="Estoque")
-    
-    # Formulário Estoque (topo da aba)
-    frame_form = tk.Frame(aba_estoque)
-    frame_form.pack(fill="x", padx=6, pady=6)
-    
-    labels = ["Código de Barras","Nome","Quantidade","Unidade","Categoria","Limite Alerta","Preço Custo","Preço Venda","Fornecedor","Validade (dd/mm/aaaa)"]
-    for i, txt in enumerate(labels):
-        tk.Label(frame_form, text=txt).grid(row=0, column=i, padx=4, sticky="w")
-    
-    entry_codigo_barras = tk.Entry(frame_form, width=12)
-    entry_codigo_barras.grid(row=1, column=0, padx=4)
-    entry_nome = tk.Entry(frame_form, width=20)
-    entry_nome.grid(row=1, column=1, padx=4)
-    entry_quantidade = tk.Entry(frame_form, width=8)
-    entry_quantidade.grid(row=1, column=2, padx=4)
-    entry_unidade = tk.Entry(frame_form, width=8)
-    entry_unidade.grid(row=1, column=3, padx=4)
-    combo_categoria = ttk.Combobox(frame_form, values=["Alimento","Bebida","Limpeza","Outro"], width=12)
-    combo_categoria.grid(row=1, column=4, padx=4)
-    entry_limite = tk.Entry(frame_form, width=8)
-    entry_limite.grid(row=1, column=5, padx=4)
-    entry_preco_custo = tk.Entry(frame_form, width=10)
-    entry_preco_custo.grid(row=1, column=6, padx=4)
-    entry_preco_venda = tk.Entry(frame_form, width=10)
-    entry_preco_venda.grid(row=1, column=7, padx=4)
-    entry_fornecedor = tk.Entry(frame_form, width=15)
-    entry_fornecedor.grid(row=1, column=8, padx=4)
-    entry_data_validade = tk.Entry(frame_form, width=14)
-    entry_data_validade.grid(row=1, column=9, padx=4)
-    
-    # Botões do formulário
-    frame_buttons = tk.Frame(aba_estoque)
-    frame_buttons.pack(fill="x", padx=6, pady=6)
-    btn_adicionar = tk.Button(frame_buttons, text="Adicionar Produto", command=adicionar_item, bg="#4caf50", fg="white")
-    btn_adicionar.pack(side="left", padx=4)
-    btn_editar = tk.Button(frame_buttons, text="Editar Selecionado", command=editar_item, bg="#2196f3", fg="white")
-    btn_editar.pack(side="left", padx=4)
-    btn_remover = tk.Button(frame_buttons, text="Remover Selecionado", command=remover_item, bg="#f44336", fg="white")
-    btn_remover.pack(side="left", padx=4)
-    btn_limpar = tk.Button(frame_buttons, text="Limpar Campos", command=limpar_campos)
-    btn_limpar.pack(side="left", padx=4)
-    
-    entry_busca = tk.Entry(frame_buttons, width=30)
-    entry_busca.pack(side="right", padx=4)
-    btn_buscar = tk.Button(frame_buttons, text="Buscar", command=buscar_item)
-    btn_buscar.pack(side="right", padx=4)
-    
-    # Treeview Estoque
-    cols = ("Código","Nome","Qtd","Unidade","Categoria","Custo","Venda","Margem","Fornecedor","Validade","Alerta")
-    tree = ttk.Treeview(aba_estoque, columns=cols, show="headings", height=18)
-    for c in cols:
-        tree.heading(c, text=c)
-        tree.column(c, width=100)
-    tree.column("Nome", width=220)
-    tree.column("Fornecedor", width=140)
-    tree.pack(fill="both", expand=True, padx=6, pady=6)
-    tree.bind("<Double-1>", carregar_para_edicao)
-    tree.tag_configure('baixo_estoque', background='#ffe6e6')
-    
-    # --- Aba Notas Fiscais ---
-    aba_nf = ttk.Frame(notebook)
-    notebook.add(aba_nf, text="Notas Fiscais")
-    
-    # Cabeçalho NF
-    tk.Label(aba_nf, text="Número NF:").grid(row=0, column=0, padx=6, pady=4, sticky="e")
-    entry_numero_nf = tk.Entry(aba_nf, width=20)
-    entry_numero_nf.grid(row=0, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="Fornecedor:").grid(row=1, column=0, padx=6, pady=4, sticky="e")
-    entry_fornecedor_nf = tk.Entry(aba_nf, width=30)
-    entry_fornecedor_nf.grid(row=1, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="CNPJ:").grid(row=2, column=0, padx=6, pady=4, sticky="e")
-    entry_cnpj_nf = tk.Entry(aba_nf, width=20)
-    entry_cnpj_nf.grid(row=2, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="Data Emissão (dd/mm/aaaa):").grid(row=3, column=0, padx=6, pady=4, sticky="e")
-    entry_data_emissao_nf = tk.Entry(aba_nf, width=20)
-    entry_data_emissao_nf.grid(row=3, column=1, padx=6, pady=4, sticky="w")
-    
-    # Itens NF - inputs
-    tk.Label(aba_nf, text="Produto:").grid(row=4, column=0, padx=6, pady=4, sticky="e")
-    entry_produto_nf = tk.Entry(aba_nf, width=30)
-    entry_produto_nf.grid(row=4, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="Quantidade:").grid(row=5, column=0, padx=6, pady=4, sticky="e")
-    entry_quantidade_nf = tk.Entry(aba_nf, width=10)
-    entry_quantidade_nf.grid(row=5, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="Preço Unitário:").grid(row=6, column=0, padx=6, pady=4, sticky="e")
-    entry_preco_nf = tk.Entry(aba_nf, width=12)
-    entry_preco_nf.grid(row=6, column=1, padx=6, pady=4, sticky="w")
-    
-    tk.Label(aba_nf, text="Validade (dd/mm/aaaa):").grid(row=7, column=0, padx=6, pady=4, sticky="e")
-    entry_validade_nf = tk.Entry(aba_nf, width=20)
-    entry_validade_nf.grid(row=7, column=1, padx=6, pady=4, sticky="w")
-    
-    btn_add_item_nf = tk.Button(aba_nf, text="Adicionar Item à NF", command=adicionar_item_nf, bg="#4caf50", fg="white")
-    btn_add_item_nf.grid(row=8, column=0, columnspan=2, pady=6)
-    
-    # Treeview itens NF
-    cols_itens_nf = ("Produto","Quantidade","Preço Unit.","Subtotal","Validade")
-    tree_itens_nf = ttk.Treeview(aba_nf, columns=cols_itens_nf, show="headings", height=8)
-    for c in cols_itens_nf:
-        tree_itens_nf.heading(c, text=c)
-        tree_itens_nf.column(c, width=120)
-    tree_itens_nf.grid(row=9, column=0, columnspan=3, padx=6, pady=6)
-    
-    btn_remover_item_nf = tk.Button(aba_nf, text="Remover Item Selecionado", command=remover_item_nf, bg="#f44336", fg="white")
-    btn_remover_item_nf.grid(row=10, column=0, pady=4)
-    
-    label_total_nf = tk.Label(aba_nf, text="Total da NF: R$ 0.00", font=("Arial", 11, "bold"))
-    label_total_nf.grid(row=10, column=1, pady=4, sticky="w")
-    
-    btn_salvar_nf = tk.Button(aba_nf, text="Salvar Nota Fiscal", command=salvar_nf, bg="#2196f3", fg="white")
-    btn_salvar_nf.grid(row=11, column=0, columnspan=2, pady=10)
-    
-    # --- Aba Administração (apenas admin) ---
-    if usuario_logado["nivel"] == "admin":
-        aba_admin = ttk.Frame(notebook)
-        notebook.add(aba_admin, text="Administração")
-        
-        tk.Label(aba_admin, text="ÁREA ADMINISTRATIVA", font=("Arial", 16, "bold")).pack(pady=20)
-        tk.Label(aba_admin, text="Área restrita para administradores", font=("Arial", 11), fg="#7f8c8d").pack(pady=(0, 30))
-        
-        btn_gerenciar_usuarios = tk.Button(aba_admin, text="Gerenciar Usuários", command=cadastrar_usuario, 
-                                          bg="#9b59b6", fg="white", font=("Arial", 12), padx=20, pady=10)
-        btn_gerenciar_usuarios.pack(pady=10)
-        
-        # Estatísticas do sistema
-        frame_stats = tk.LabelFrame(aba_admin, text="Estatísticas do Sistema", padx=20, pady=20)
-        frame_stats.pack(pady=20, padx=50, fill="x")
-        
-        def atualizar_stats():
-            total_produtos = len(estoque)
-            total_notas = len(notas)
-            total_usuarios = len(usuarios)
-            
-            label_stats.config(text=f"""
-Produtos cadastrados: {total_produtos}
-Notas fiscais registradas: {total_notas}
-Usuários cadastrados: {total_usuarios}
-Usuário logado: {usuario_logado['usuario']} ({usuario_logado['nivel']})
-            """)
-        
-        label_stats = tk.Label(frame_stats, font=("Arial", 11), justify="left")
-        label_stats.pack()
-        
-        btn_atualizar_stats = tk.Button(frame_stats, text="Atualizar Estatísticas", command=atualizar_stats)
-        btn_atualizar_stats.pack(pady=10)
-        
-        atualizar_stats()
-    
-    # Inicialização UI
-    atualizar_lista()
-    atualizar_contador_itens()
-    
-    root.mainloop()
+# Frames principais
+frame_top = tk.Frame(root)
+frame_top.pack(fill="x", padx=8, pady=6)
 
-# ---------------------------
-# Início do programa
-# ---------------------------
-if __name__ == "__main__":
-    iniciar_login()
+frame_main = tk.Frame(root)
+frame_main.pack(fill="both", expand=True, padx=8, pady=6)
+
+# ---------- CONTROLES SUPERIORES ----------
+btn_backup = tk.Button(frame_top, text="Backup", command=fazer_backup)
+btn_backup.pack(side="left", padx=4)
+btn_export_csv = tk.Button(frame_top, text="Exportar CSV", command=exportar_csv)
+btn_export_csv.pack(side="left", padx=4)
+btn_relatorio = tk.Button(frame_top, text="Gerar Relatório", command=gerar_relatorio)
+btn_relatorio.pack(side="left", padx=4)
+
+label_contador = tk.Label(frame_top, text="")
+label_contador.pack(side="right")
+
+# ---------- TABS ----------
+notebook = ttk.Notebook(frame_main)
+notebook.pack(fill="both", expand=True)
+
+# --- Aba Estoque ---
+aba_estoque = ttk.Frame(notebook)
+notebook.add(aba_estoque, text="Estoque")
+
+# Formulário Estoque (topo da aba)
+frame_form = tk.Frame(aba_estoque)
+frame_form.pack(fill="x", padx=6, pady=6)
+
+labels = ["Código de Barras","Nome","Quantidade","Unidade","Categoria","Limite Alerta","Preço Custo","Preço Venda","Fornecedor","Validade (dd/mm/aaaa)"]
+for i, txt in enumerate(labels):
+    tk.Label(frame_form, text=txt).grid(row=0, column=i, padx=4, sticky="w")
+
+entry_codigo_barras = tk.Entry(frame_form, width=12)
+entry_codigo_barras.grid(row=1, column=0, padx=4)
+entry_nome = tk.Entry(frame_form, width=20)
+entry_nome.grid(row=1, column=1, padx=4)
+entry_quantidade = tk.Entry(frame_form, width=8)
+entry_quantidade.grid(row=1, column=2, padx=4)
+entry_unidade = tk.Entry(frame_form, width=8)
+entry_unidade.grid(row=1, column=3, padx=4)
+combo_categoria = ttk.Combobox(frame_form, values=["Alimento","Bebida","Limpeza","Outro"], width=12)
+combo_categoria.grid(row=1, column=4, padx=4)
+entry_limite = tk.Entry(frame_form, width=8)
+entry_limite.grid(row=1, column=5, padx=4)
+entry_preco_custo = tk.Entry(frame_form, width=10)
+entry_preco_custo.grid(row=1, column=6, padx=4)
+entry_preco_venda = tk.Entry(frame_form, width=10)
+entry_preco_venda.grid(row=1, column=7, padx=4)
+entry_fornecedor = tk.Entry(frame_form, width=15)
+entry_fornecedor.grid(row=1, column=8, padx=4)
+entry_data_validade = tk.Entry(frame_form, width=14)
+entry_data_validade.grid(row=1, column=9, padx=4)
+
+# Botões do formulário
+frame_buttons = tk.Frame(aba_estoque)
+frame_buttons.pack(fill="x", padx=6, pady=6)
+btn_adicionar = tk.Button(frame_buttons, text="Adicionar Produto", command=adicionar_item, bg="#4caf50", fg="white")
+btn_adicionar.pack(side="left", padx=4)
+btn_editar = tk.Button(frame_buttons, text="Editar Selecionado", command=editar_item, bg="#2196f3", fg="white")
+btn_editar.pack(side="left", padx=4)
+btn_remover = tk.Button(frame_buttons, text="Remover Selecionado", command=remover_item, bg="#f44336", fg="white")
+btn_remover.pack(side="left", padx=4)
+btn_limpar = tk.Button(frame_buttons, text="Limpar Campos", command=limpar_campos)
+btn_limpar.pack(side="left", padx=4)
+
+entry_busca = tk.Entry(frame_buttons, width=30)
+entry_busca.pack(side="right", padx=4)
+btn_buscar = tk.Button(frame_buttons, text="Buscar", command=buscar_item)
+btn_buscar.pack(side="right", padx=4)
+
+# Treeview Estoque
+cols = ("Código","Nome","Qtd","Unidade","Categoria","Custo","Venda","Margem","Fornecedor","Validade","Alerta")
+tree = ttk.Treeview(aba_estoque, columns=cols, show="headings", height=18)
+for c in cols:
+    tree.heading(c, text=c)
+    tree.column(c, width=100)
+tree.column("Nome", width=220)
+tree.column("Fornecedor", width=140)
+tree.pack(fill="both", expand=True, padx=6, pady=6)
+tree.bind("<Double-1>", carregar_para_edicao)
+tree.tag_configure('baixo_estoque', background='#ffe6e6')
+
+# --- Aba Notas Fiscais ---
+aba_nf = ttk.Frame(notebook)
+notebook.add(aba_nf, text="Notas Fiscais")
+
+# Cabeçalho NF
+tk.Label(aba_nf, text="Número NF:").grid(row=0, column=0, padx=6, pady=4, sticky="e")
+entry_numero_nf = tk.Entry(aba_nf, width=20)
+entry_numero_nf.grid(row=0, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="Fornecedor:").grid(row=1, column=0, padx=6, pady=4, sticky="e")
+entry_fornecedor_nf = tk.Entry(aba_nf, width=30)
+entry_fornecedor_nf.grid(row=1, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="CNPJ:").grid(row=2, column=0, padx=6, pady=4, sticky="e")
+entry_cnpj_nf = tk.Entry(aba_nf, width=20)
+entry_cnpj_nf.grid(row=2, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="Data Emissão (dd/mm/aaaa):").grid(row=3, column=0, padx=6, pady=4, sticky="e")
+entry_data_emissao_nf = tk.Entry(aba_nf, width=20)
+entry_data_emissao_nf.grid(row=3, column=1, padx=6, pady=4, sticky="w")
+
+# Itens NF - inputs
+tk.Label(aba_nf, text="Produto:").grid(row=4, column=0, padx=6, pady=4, sticky="e")
+entry_produto_nf = tk.Entry(aba_nf, width=30)
+entry_produto_nf.grid(row=4, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="Quantidade:").grid(row=5, column=0, padx=6, pady=4, sticky="e")
+entry_quantidade_nf = tk.Entry(aba_nf, width=10)
+entry_quantidade_nf.grid(row=5, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="Preço Unitário:").grid(row=6, column=0, padx=6, pady=4, sticky="e")
+entry_preco_nf = tk.Entry(aba_nf, width=12)
+entry_preco_nf.grid(row=6, column=1, padx=6, pady=4, sticky="w")
+
+tk.Label(aba_nf, text="Validade (dd/mm/aaaa):").grid(row=7, column=0, padx=6, pady=4, sticky="e")
+entry_validade_nf = tk.Entry(aba_nf, width=20)
+entry_validade_nf.grid(row=7, column=1, padx=6, pady=4, sticky="w")
+
+btn_add_item_nf = tk.Button(aba_nf, text="Adicionar Item à NF", command=adicionar_item_nf, bg="#4caf50", fg="white")
+btn_add_item_nf.grid(row=8, column=0, columnspan=2, pady=6)
+
+# Treeview itens NF
+cols_itens_nf = ("Produto","Quantidade","Preço Unit.","Subtotal","Validade")
+tree_itens_nf = ttk.Treeview(aba_nf, columns=cols_itens_nf, show="headings", height=8)
+for c in cols_itens_nf:
+    tree_itens_nf.heading(c, text=c)
+    tree_itens_nf.column(c, width=120)
+tree_itens_nf.grid(row=9, column=0, columnspan=3, padx=6, pady=6)
+
+btn_remover_item_nf = tk.Button(aba_nf, text="Remover Item Selecionado", command=remover_item_nf, bg="#f44336", fg="white")
+btn_remover_item_nf.grid(row=10, column=0, pady=4)
+
+label_total_nf = tk.Label(aba_nf, text="Total da NF: R$ 0.00", font=("Arial", 11, "bold"))
+label_total_nf.grid(row=10, column=1, pady=4, sticky="w")
+
+btn_salvar_nf = tk.Button(aba_nf, text="Salvar Nota Fiscal", command=salvar_nf, bg="#2196f3", fg="white")
+btn_salvar_nf.grid(row=11, column=0, columnspan=2, pady=10)
+
+# Inicialização UI
+atualizar_lista()
+atualizar_contador_itens()
+root.mainloop()

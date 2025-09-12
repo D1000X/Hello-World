@@ -1,0 +1,24 @@
+[
+    {
+        "codigo_barras": "789633752625",
+        "nome": "Arroz",
+        "quantidade": 15,
+        "unidade": "klg",
+        "categoria": "Alimento",
+        "limite_alerta": 5,
+        "preco_custo": 2.4,
+        "preco_venda": 4.8,
+        "margem_lucro": 2.4,
+        "fornecedor": "Seu joáo",
+        "data_validade": "11/05/2025",
+        "data_cadastro": "2025-09-09 16:39:10",
+        "movimentacoes": [
+            {
+                "tipo": "entrada_manual",
+                "quantidade": 15,
+                "data": "2025-09-09 16:39:10",
+                "observacao": "Cadastro inicial"
+            }
+        ]
+    }
+]

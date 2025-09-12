@@ -1,0 +1,17 @@
+[
+    {
+        "usuario": "admin",
+        "senha": "admin",
+        "nivel": "admin"
+    },
+    {
+        "usuario": "Dgzix",
+        "senha": "1234",
+        "nivel": "admin"
+    },
+    {
+        "usuario": "user",
+        "senha": "1234",
+        "nivel": "comum"
+    }
+]

@@ -1,0 +1,19 @@
+[
+    {
+        "usuario": "admin",
+        "senha": "admin123",
+        "nivel": "admin"
+    },
+    {
+        "usuario": "dgzix",
+        "senha": "1234",
+        "nivel": "admin",
+        "data_criacao": "2025-09-09 09:21:21"
+    },
+    {
+        "usuario": "user",
+        "senha": "1234",
+        "nivel": "comum",
+        "data_criacao": "2025-09-09 09:30:50"
+    }
+]
