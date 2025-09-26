@@ -10,10 +10,10 @@ class Televisao:
         self.ligado = False
 
     def ligartv(self):
-        self.ligartv = True
+        self.ligado = True
 
     def desligartv(self):
-        self.desligartv = False
+        self.ligado = False
 
     def canalUp(self):
         if not self.ligado:
