@@ -993,10 +993,17 @@ def editar_produto():
     if not selecao:
         messagebox.showerror("Erro", "Selecione um produto para editar.")
         return
-    
+
     item_selecionado = selecao[0]
-    index_item = tree_estoque.index(item_selecionado)
-    
+    valores = tree_estoque.item(item_selecionado, "values")
+    codigo_barras = valores[0]
+
+    # Encontrar o índice correto na lista estoque
+    index_item = next((i for i, p in enumerate(estoque) if p.get("codigo_barras") == codigo_barras), None)
+    if index_item is None:
+        messagebox.showerror("Erro", "Produto não encontrado no estoque.")
+        return
+
     nome = entry_nome.get().strip()
     quantidade_str = entry_quantidade.get().strip()
     unidade = entry_unidade.get().strip()
@@ -1621,7 +1628,7 @@ def gerar_relatorio_estoque():
             if dias < 0:
                 status = "VENCIDO"
             else:
-                status = f"{dias} dias"
+                status = "PRÓXIMO"
             text_relatorio.insert(tk.END, 
                 f"• {produto['nome']}: {status} (Validade: {produto.get('data_validade', '')})\n", ("alerta",))
         text_relatorio.insert(tk.END, "\n")
@@ -1718,7 +1725,6 @@ def gerar_relatorio_vencidos():
     tree_vencidos.pack(side="left", fill="both", expand=True)
     scroll_vencidos.pack(side="right", fill="y")
     
-    # Configurar tags
     tree_vencidos.tag_configure('vencido', background=COLORS['expired'])
     tree_vencidos.tag_configure('proximo', background='#fff3cd')
     
